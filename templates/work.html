@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Celular {{ phone.slot }} | Pente Fino{% endblock %}
+{% block container_class %}worker-container{% endblock %}
+{% block body %}
+<div class="worker-head">
+  <div><span class="eyebrow">CELULAR {{ phone.slot }} · {{ count.store }}</span><h1>{{ phone.operator }}</h1></div>
+  <span class="mini-counter">{{ reviewed }}/{{ total }}</span>
+</div>
+<div class="bar worker-bar"><span style="width:{{ (reviewed/total*100)|round|int if total else 0 }}%"></span></div>
+<div class="worker-subline"><span>{{ total-reviewed }} SKU(s) não conferidos</span><span>{{ (reviewed/total*100)|round|int if total else 0 }}% conferido</span></div>
+
+{% if completed %}
+  <section class="card finish-card">
+    <div class="big-check">✓</div>
+    {% if reviewed == total %}
+      <h2>Pente Fino finalizado!</h2>
+      <p>Você conferiu os {{ total }} SKUs da sua parte.</p>
+      <span class="status-pill status-done">100% conferido</span>
+    {% else %}
+      <h2>Parte finalizada antecipadamente</h2>
+      <p>Você conferiu <strong>{{ reviewed }} de {{ total }} SKUs</strong>. Os outros <strong>{{ total-reviewed }}</strong> mantiveram a quantidade FINAL do Comptar e serão sinalizados no relatório como <strong>“Finalizado antes de conferir”</strong>.</p>
+      <span class="status-pill status-early">{{ total-reviewed }} sem conferência</span>
+    {% endif %}
+    <p class="hint">Se precisar corrigir depois de finalizar, peça ao responsável para reabrir sua parte.</p>
+  </section>
+{% else %}
+  <form class="lookup-panel" action="{{ url_for('work',code=count.code) }}" method="get">
+    <label for="sku-query" class="visually-hidden">Pesquisar SKU</label>
+    <div class="searchbox"><span aria-hidden="true">⌕</span><input id="sku-query" name="q" value="{{ query }}" placeholder="Código, descrição ou local" autocomplete="off"><button type="submit" class="search-go">Buscar</button></div>
+    <div class="filter-strip">
+      <label for="sku-filter" class="filter-label">Mostrar</label>
+      <select id="sku-filter" name="status" onchange="this.form.submit()">
+        <option value="todos" {% if status_filter=='todos' %}selected{% endif %}>Todos</option>
+        <option value="pendentes" {% if status_filter=='pendentes' %}selected{% endif %}>Não conferidos</option>
+        <option value="conferidos" {% if status_filter=='conferidos' %}selected{% endif %}>Conferidos</option>
+        <option value="sem_localizacao" {% if status_filter=='sem_localizacao' %}selected{% endif %}>Sem localização (não encontrados)</option>
+      </select>
+      <a href="{{ url_for('work',code=count.code) }}" class="quiet-button reset-search">Limpar</a>
+    </div>
+  </form>
+
+  {% if status_filter == 'sem_localizacao' %}
+    <div class="notice warning-notice no-location-info">
+      <strong>Sem localização / não encontrados no Comptar:</strong>
+      produtos com saldo no sistema, mas C1 e C.DIF iguais a zero.
+      Confira fisicamente e salve a quantidade encontrada. Este filtro mostra apenas os SKUs do seu celular.
+    </div>
+  {% endif %}
+
+  {% if finish_prompt %}
+    <section class="card finish-card confirmation-card">
+      <div class="big-check {% if reviewed < total %}warning-check{% endif %}">{% if reviewed < total %}!{% else %}✓{% endif %}</div>
+      <h2>Finalizar Pente Fino?</h2>
+      {% if reviewed < total %}
+        <p>Este celular ainda tem <strong>{{ total-reviewed }} SKUs sem conferência física.</strong></p>
+        <div class="notice warning-notice">Se você finalizar agora, os SKUs não conferidos manterão a quantidade <strong>FINAL do Comptar</strong> no CSV e terão o aviso <strong>“Finalizado antes de conferir”</strong>. Seu nome e o último SKU salvo ficarão no relatório.</div>
+        <form method="post" action="{{ url_for('finish_phone',code=count.code) }}">
+          <input type="hidden" name="confirmar_antecipado" value="sim">
+          <button class="btn btn-danger btn-block btn-tall" type="submit">Sim, finalizar com {{ total-reviewed }} pendentes</button>
+        </form>
+      {% else %}
+        <p>Você conferiu todos os {{ total }} SKUs da sua parte.</p>
+        <form method="post" action="{{ url_for('finish_phone',code=count.code) }}">
+          <button class="btn btn-primary btn-block btn-tall" type="submit">Confirmar finalização</button>
+        </form>
+      {% endif %}
+      <a href="{{ url_for('work',code=count.code,status=status_filter,q=query) }}" class="btn btn-secondary btn-block">Voltar à contagem</a>
+    </section>
+
+  {% elif search_results is not none %}
+    <div class="results">
+      <div class="results-head"><h2>SKUs encontrados</h2><span>{{ result_count }} item(ns)</span></div>
+      {% if search_results %}
+        {% for item in search_results %}
+          <a class="result-item" href="{{ url_for('work',code=count.code,item=item.id,status=status_filter,q=query) }}">
+            <span><strong>{{ item.sku }}</strong><small>{{ item.description }}</small>
+            <small>{{ '✓ Conferido — toque para editar' if item.reviewed_at else '• Não conferido — toque para contar' }}</small>
+            {% if item.id in sem_localizacao_ids %}<small class="no-location-tag">Sem localização · Saldo do sistema: {{ item.saldo_comptar }} · C1: 0 · C.DIF: 0</small>{% endif %}</span>
+            <span class="result-end">→</span>
+          </a>
+        {% endfor %}
+        {% if result_count > 150 %}<p class="hint">Mostrando os primeiros 150 resultados. Digite parte do código para refinar.</p>{% endif %}
+      {% else %}<p class="muted">Nenhum SKU encontrado para esse filtro. Você pode escolher outro filtro ou limpar a busca.</p>{% endif %}
+    </div>
+  {% elif product %}
+    <nav class="sku-nav" aria-label="Navegação de produtos">
+      {% if previous_item %}<a href="{{ url_for('work',code=count.code,item=previous_item.id,status=status_filter,q=query) }}">← SKU anterior</a>{% else %}<span>Início da lista</span>{% endif %}
+      <strong>{% if in_active_filter %}{{ position }} de {{ filtered_total }}{% else %}SKU fora do filtro{% endif %}</strong>
+      {% if next_item %}<a href="{{ url_for('work',code=count.code,item=next_item.id,status=status_filter,q=query) }}">Próximo SKU →</a>{% else %}<span>Fim da lista</span>{% endif %}
+    </nav>
+    <div class="item-context"><span class="eyebrow">{% if in_active_filter %}SKU {{ position }} DE {{ filtered_total }} NO FILTRO{% else %}SKU FORA DO FILTRO ATUAL{% endif %}</span>
+      <span class="status-pill {% if product.reviewed_at %}status-done{% endif %}">{{ '✓ Conferido · editável' if product.reviewed_at else 'Não conferido' }}</span></div>
+    {% if status_filter != 'todos' or query %}
+      <div class="filter-context"><span>Filtro ativo: <strong>{{ {'conferidos':'Conferidos','pendentes':'Não conferidos','sem_localizacao':'Sem localização','todos':'Todos'}[status_filter] }}</strong>{% if query %} · Busca: <strong>{{ query }}</strong>{% endif %}</span>
+        <a href="{{ url_for('work',code=count.code,status=status_filter,q=query) }}">Ver resultados</a>
+      </div>
+    {% endif %}
+    <article class="product-card">
+      <div class="sku">CÓD {{ product.sku }}</div>
+      <h2>{{ product.description }}</h2>
+      {% if product.id in sem_localizacao_ids %}
+        <div class="notice warning-notice no-location-info"><strong>Atenção: produto não encontrado nas contagens do Comptar.</strong>
+        Saldo no sistema: {{ product.saldo_comptar }} · C1: {{ product.c1_comptar }} · C.DIF: {{ product.cdif_comptar }}. Confira novamente.</div>
+      {% endif %}
+      <div class="location-box"><span>LOCALIZAÇÕES</span><strong>{{ product.location or 'Não informado no Comptar' }}</strong></div>
+      <div class="previous-count"><span>FINAL DO COMPTAR</span><strong>{{ product.final_original }}</strong></div>
+      <form action="{{ url_for('save_product',code=count.code,product_id=product.id) }}" method="post">
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        <input type="hidden" name="q" value="{{ query }}">
+        <label class="quantity-label" for="quantidade">CONT.FINAL <small>Total encontrado em todas as localizações</small></label>
+        <div class="quantity-input"><button type="button" class="qty-adjust" data-adjust="-1" aria-label="Diminuir quantidade">−</button><input id="quantidade" type="number" name="quantidade" required inputmode="numeric" min="0" step="1" value="{{ product.final_count }}"><button type="button" class="qty-adjust" data-adjust="1" aria-label="Aumentar quantidade">+</button></div>
+        <p class="hint quantity-hint">O valor inicia com FINAL do Comptar. Após conferir fisicamente, toque em salvar para confirmar ou atualizar.</p>
+        <button type="submit" class="btn btn-primary btn-block btn-tall">Salvar e próximo <span>→</span></button>
+      </form>
+    </article>
+  {% else %}
+    <section class="card finish-card"><div class="big-check">✓</div><h2>Todos os SKUs conferidos!</h2><p>Revise qualquer item pela busca ou finalize sua parte.</p></section>
+  {% endif %}
+
+  {% if not finish_prompt %}
+    <a href="{{ url_for('work',code=count.code,finalizar=1,status=status_filter,q=query) }}" class="btn btn-outline-alert btn-block finish-shortcut">FINALIZAR PENTE FINO</a>
+    <p class="hint center-note">Se houver SKUs pendentes, o aplicativo mostrará o total antes de permitir a finalização antecipada.</p>
+  {% endif %}
+{% endif %}
+{% endblock %}

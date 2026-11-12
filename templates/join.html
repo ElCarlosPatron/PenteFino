@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Entrar na contagem | Pente Fino{% endblock %}
+{% block body %}
+<section class="intro tight">
+  <span class="eyebrow">ACESSO DO OPERADOR</span>
+  <h1>Vamos contar<span>.</span></h1>
+  <p>Entre na contagem compartilhada e veja apenas os produtos atribuídos ao seu celular.</p>
+</section>
+<div class="card setup-card">
+  {% if not count %}
+    <h2>Código da contagem</h2>
+    <form action="{{ url_for('join_landing_post') }}" method="post">
+      <label for="codigo">Digite o código de 8 caracteres</label>
+      <input class="code-input" id="codigo" name="codigo" maxlength="9" required placeholder="EX.: ABCD2345" autocapitalize="characters" autocomplete="off">
+      <button class="btn btn-primary btn-block btn-tall" type="submit">Continuar →</button>
+    </form>
+  {% else %}
+    <div class="label-overline">CONTAGEM</div>
+    <h2>{{ count.store }}</h2>
+    <p class="muted">Código {{ count.code }} · {{ count.phone_count }} celular(es)</p>
+    {% if free %}
+      <form action="{{ url_for('reserve_phone',code=count.code) }}" method="post">
+        <label for="operador">Seu nome</label>
+        <input name="operador" id="operador" maxlength="80" required placeholder="Nome do operador" autocomplete="name">
+        <label for="celular">Qual celular você vai utilizar?</label>
+        <select id="celular" name="celular">
+          {% for slot in free %}<option value="{{ slot }}">Celular {{ slot }}</option>{% endfor %}
+        </select>
+        <button class="btn btn-primary btn-block btn-tall" type="submit">Começar minha parte →</button>
+      </form>
+    {% else %}
+      <div class="notice">Todos os celulares já foram atribuídos. Peça ao responsável para liberar um aparelho, se necessário.</div>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

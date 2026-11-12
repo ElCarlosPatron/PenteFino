@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Começar | Pente Fino{% endblock %}
+{% block body %}
+  <section class="intro">
+    <span class="eyebrow">SIMPLES · RÁPIDO · EM EQUIPE</span>
+    <h1>Uma contagem.<br><span>Todo mundo junto.</span></h1>
+    <p>Importe o arquivo do Comptar, divida os produtos entre os celulares e acompanhe tudo em tempo real.</p>
+  </section>
+  <section class="card setup-card">
+    <div class="section-head"><span class="step">01</span><div><h2>Nova contagem</h2><p>Configure a conferência em poucos passos.</p></div></div>
+    <form action="{{ url_for('create') }}" method="post" enctype="multipart/form-data">
+      <label for="arquivo">Arquivo do Comptar</label>
+      <input id="arquivo" type="file" name="arquivo" accept=".csv,text/csv" required>
+      <p class="hint">CSV exportado após C1 e contagem de diferenças.</p>
+      <label for="loja">Loja / unidade</label>
+      <input id="loja" name="loja" type="text" placeholder="Ex.: Stock Center" autocomplete="organization" required maxlength="100">
+      <div class="date-line"><span>Data da contagem</span><strong>{{ today }}</strong></div>
+      <details class="divide" id="divide">
+        <summary><span class="divide-mark">▦</span><span><strong>Dividir celulares</strong><small>Escolha quantas pessoas vão contar</small></span><span class="chevron">⌄</span></summary>
+        <div class="divide-body">
+          <label for="celulares">Quantidade de celulares</label>
+          <select name="celulares" id="celulares">
+            {% for i in range(1,21) %}<option value="{{ i }}" {% if i==1 %}selected{% endif %}>{{ i }} {% if i==1 %}celular{% else %}celulares{% endif %}</option>{% endfor %}
+          </select>
+          <p class="hint">Os produtos serão divididos de forma equilibrada, sem repetir códigos entre celulares.</p>
+        </div>
+      </details>
+      <button class="btn btn-primary btn-block btn-tall" type="submit">Criar contagem <span aria-hidden="true">→</span></button>
+    </form>
+  </section>
+  <div class="join-callout">Recebeu um código para contar? <a href="{{ url_for('join_landing') }}">Entrar na contagem →</a></div>
+{% endblock %}

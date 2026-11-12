@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Painel da contagem | Pente Fino{% endblock %}
+{% block body %}
+<section class="dash-head">
+  <div>
+    <div class="eyebrow">PAINEL DO RESPONSÁVEL</div>
+    <h1>{{ count.store }}</h1>
+    <p class="muted">{{ count.filename }} · Início em {{ count.created_at[:10].split('-')|reverse|join('/') }}</p>
+  </div>
+  <div class="code-card"><span>CÓDIGO DA EQUIPE</span><strong id="join-code">{{ count.code }}</strong><button type="button" class="link-button" data-copy="{{ count.code }}">Copiar código</button></div>
+</section>
+<section class="card sharing-card">
+  <div class="share-title"><span class="small-icon">↗</span><div><strong>Conecte os celulares</strong><p>Na mesma rede Wi-Fi, abra o endereço do aplicativo no celular e informe o código acima.</p></div></div>
+  <div class="share-tools"><input type="text" id="join-link" readonly value="{{ join_link }}" aria-label="Link para operadores"><button type="button" class="btn btn-secondary" data-copy-from="join-link">Copiar link</button></div>
+  <p class="hint">{{ "Compartilhe o link com a equipe. Cada celular pode acessar por qualquer rede com internet." if online_mode else "Na versão local, os celulares devem usar a mesma rede Wi-Fi do computador." }}</p>
+  <details class="backup-access"><summary>Salvar acesso do responsável</summary>
+    <p class="hint">Guarde este link em local privado para recuperar o painel em outro navegador. <strong>Não compartilhe com operadores.</strong></p>
+    <div class="share-tools"><input readonly id="admin-recovery" type="text" value="{{ url_for('recover_admin',code=count.code,token=count.admin_token,_external=True) }}" aria-label="Link privado do responsável"><button type="button" class="btn btn-secondary" data-copy-from="admin-recovery">Copiar link</button></div>
+  </details>
+</section>
+<div class="stats-grid">
+  <div class="metric"><span>Produtos</span><strong>{{ stats.total }}</strong></div>
+  <div class="metric"><span>Conferidos</span><strong id="reviewed-total">{{ stats.reviewed }}</strong></div>
+  <div class="metric"><span>Celulares finalizados</span><strong id="finished-total">{{ stats.finished }}/{{ count.phone_count }}</strong></div>
+</div>
+<section class="card progress-panel" data-poll-url="{{ url_for('progress_api',code=count.code) }}" data-reload-on-ready="{{ '0' if stats.ready else '1' }}">
+  <div class="panel-heading"><h2>Andamento</h2><span class="live-pill"><span class="live-dot"></span> Atualiza automaticamente</span></div>
+  <div class="progress-label"><strong>Progresso geral</strong><span id="overall-percent">{{ stats.percentage }}%</span></div>
+  <div class="bar"><span id="overall-bar" style="width:{{ stats.percentage }}%"></span></div>
+  <div id="phone-list" class="phone-list">
+    {% for ph in stats.phones %}
+    <article class="phone-item" id="phone-{{ ph.slot }}">
+      <div class="phone-top"><span class="phone-symbol">▯</span><div class="phone-identity"><strong>Celular {{ ph.slot }}</strong><span>{{ ph.operator or 'Aguardando operador' }}</span></div>
+      <span class="status-pill {% if ph.finished_at and ph.pending %}status-early{% elif ph.finished_at %}status-done{% elif ph.operator %}status-running{% endif %}" data-status>{{ 'Finalizado antecipadamente' if ph.finished_at and ph.pending else ('Finalizado' if ph.finished_at else ('Em andamento' if ph.operator else 'Disponível')) }}</span></div>
+      <div class="phone-progress"><div class="bar small"><span data-bar style="width:{{ ((ph.reviewed or 0) / ph.total * 100)|round|int if ph.total else 0 }}%"></span></div><span data-count>{{ ph.reviewed or 0 }}/{{ ph.total }}</span></div>
+      <div class="phone-metadata">Entrada: {{ ph.joined_at[:19].replace('T',' ') if ph.joined_at else '-' }} · Finalizado: {{ ph.finished_at[:19].replace('T',' ') if ph.finished_at else '-' }}<br>Último SKU confirmado: <strong>{{ ph.last_sku or 'Nenhum' }}</strong> · Não conferidos: <strong>{{ ph.pending }}</strong></div>
+      {% if ph.operator %}
+        <div class="admin-actions">
+          {% if ph.finished_at %}
+            <form method="post" action="{{ url_for('reopen_phone',code=count.code,slot=ph.slot) }}" onsubmit="return confirm('Reabrir esta parte para novas correções?')"><button class="quiet-button" type="submit">Reabrir parte</button></form>
+          {% endif %}
+          <form method="post" action="{{ url_for('release_phone',code=count.code,slot=ph.slot) }}" onsubmit="return confirm('Liberar o acesso deste celular? O progresso será mantido, mas o operador atual perderá o acesso.')"><button class="quiet-button" type="submit">Liberar acesso</button></form>
+        </div>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </div>
+</section>
+<section class="card export-panel">
+  <div class="section-head"><span class="step step-dark">✓</span><div><h2>Enviar contagem</h2><p>O arquivo final é liberado somente depois da finalização de todos os celulares.</p></div></div>
+  {% if stats.ready %}
+    <div class="notice success">Todos os celulares finalizaram. Os arquivos estão disponíveis.</div>
+    {% if stats.pending %}
+      <div class="notice warning-notice"><strong>{{ stats.pending }} SKU(s) não foram conferidos fisicamente.</strong> Suas quantidades permaneceram iguais ao FINAL do Comptar. Eles aparecerão identificados no CSV e PDF como <strong>Finalizado antes de conferir</strong>.</div>
+    {% endif %}
+    <div class="export-buttons">
+      <a class="btn btn-primary btn-block btn-tall" href="{{ url_for('download_csv',code=count.code) }}">Baixar CSV de ajustes ↓</a>
+      <a class="btn btn-secondary btn-block btn-tall" href="{{ url_for('download_pdf',code=count.code) }}">Baixar relatório PDF ↓</a>
+      <a class="btn btn-secondary btn-block" href="{{ url_for('download_operators',code=count.code) }}">Relatório de operadores e celulares (CSV) ↓</a>
+    </div>
+    <p class="hint">CSV de ajustes: COD, DESC, QUANTIDADE e STATUS, separados por ponto e vírgula para abrir em colunas no Excel. O PDF contém a auditoria completa por celular e SKU. Envie os arquivos baixados ao responsável pelos ajustes; o envio automático ainda não está configurado.</p>
+  {% else %}
+    <div class="notice">Faltam {{ count.phone_count - stats.finished }} celular(es) finalizar(em). A exportação só é liberada quando todos clicarem em <strong>FINALIZAR PENTE FINO</strong>, inclusive se encerraram antecipadamente.</div>
+    <button type="button" disabled class="btn btn-primary btn-block btn-tall">Aguardando finalização de todos</button>
+  {% endif %}
+</section>
+{% endblock %}
