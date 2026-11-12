@@ -324,7 +324,7 @@ def summary(count):
         FROM phones ph LEFT JOIN products p
            ON ph.code=p.code AND ph.slot=p.slot
         WHERE ph.code=?
-        GROUP BY ph.slot ORDER BY ph.slot
+        GROUP BY ph.code, ph.slot, ph.operator, ph.joined_at, ph.finished_at, ph.finish_kind ORDER BY ph.slot
     """, (count["code"],)).fetchall()
     phones = [dict(r) for r in rows]
     for ph in phones:
