@@ -46,4 +46,27 @@
     }
     setInterval(refresh,8000);
   }
+
+  // Preferência individual por navegador/celular; não depende do banco de dados.
+  const themeButton = document.querySelector('[data-theme-toggle]');
+  const applyTheme = (theme) => {
+    const dark = theme === 'dark';
+    document.documentElement.toggleAttribute('data-theme', false);
+    if (dark) document.documentElement.setAttribute('data-theme', 'dark');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#101916' : '#f5f7f9');
+    if (themeButton) {
+      themeButton.setAttribute('aria-pressed', String(dark));
+      themeButton.setAttribute('aria-label', dark ? 'Ativar tema claro' : 'Ativar tema escuro');
+      const label = themeButton.querySelector('[data-theme-label]');
+      const icon = themeButton.querySelector('[data-theme-icon]');
+      if (label) label.textContent = dark ? 'Claro' : 'Escuro';
+      if (icon) icon.textContent = dark ? '☀' : '☾';
+    }
+  };
+  applyTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+  themeButton?.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    try { localStorage.setItem('pentefino-theme', next); } catch (_) {}
+  });
 })();
