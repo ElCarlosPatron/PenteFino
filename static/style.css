@@ -37,3 +37,85 @@
   border-radius:12px; background:#f1f8f6; color:#263b36; }
 .filter-context a { color:#116c52; font-weight:700; white-space:nowrap; }
 @media(max-width:400px) { .filter-context { align-items:flex-start; flex-direction:column; } }
+
+
+/* Pente Fino 3.4 — escolha de tema por navegador, inclusive em celulares. */
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.theme-toggle{display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  border:1px solid var(--border);background:var(--surface);color:var(--ink);
+  border-radius:999px;padding:7px 12px;min-height:39px;font-size:12px;
+  font-weight:800;line-height:1.1;white-space:nowrap}
+.theme-toggle:hover{border-color:var(--green);color:var(--green)}
+.theme-toggle:focus-visible{outline:3px solid var(--green);outline-offset:2px}
+.theme-icon{font-size:18px;line-height:1}
+@media(max-width:420px){.topbar-actions{gap:7px}.topbar-tag{display:none}
+  .theme-toggle{min-width:40px;padding:7px 9px}}
+
+/* Paleta noturna: mantém o verde de confirmação e o contraste de leitura. */
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#101916;--surface:#1c2924;--ink:#eff8f2;--muted:#b0c1b8;
+  --border:#364a40;--green:#51d6a1;--green-dark:#8df3c2;
+  --light-green:#203c30;--shadow:0 10px 32px rgba(0,0,0,.2);
+}
+html[data-theme="dark"] body{background:var(--bg);color:var(--ink)}
+html[data-theme="dark"] .topbar{background:#17231e}
+html[data-theme="dark"] .brand-icon{background:#07130d}
+html[data-theme="dark"] .brand-text small,
+html[data-theme="dark"] .topbar-tag,
+html[data-theme="dark"] .foot{color:#b2c6ba}
+html[data-theme="dark"] .metric,html[data-theme="dark"] .product-card,
+html[data-theme="dark"] .searchbox,html[data-theme="dark"] .result-item,
+html[data-theme="dark"] .sku-nav a{background:var(--surface);color:var(--ink)}
+html[data-theme="dark"] input[type=text],
+html[data-theme="dark"] input[type=file],
+html[data-theme="dark"] input[type=number],
+html[data-theme="dark"] select{background:#14211b;border-color:#41594b;color:var(--ink)}
+html[data-theme="dark"] input::placeholder{color:#aec1b5;opacity:1}
+html[data-theme="dark"] input[type=file]::file-selector-button{background:#315343;color:#e5ffef}
+html[data-theme="dark"] .searchbox input{background:transparent;border:0}
+html[data-theme="dark"] .filter-strip select{background:#14211b;color:var(--ink)}
+html[data-theme="dark"] .btn-secondary{background:#263c30;color:#dcf9e9;border-color:#45614e}
+html[data-theme="dark"] .date-line,
+html[data-theme="dark"] .notice,
+html[data-theme="dark"] .location-box,
+html[data-theme="dark"] .phone-symbol,
+html[data-theme="dark"] .status-pill{background:#293a31;color:#d0e4d7}
+html[data-theme="dark"] .date-line strong,
+html[data-theme="dark"] .location-box strong,
+html[data-theme="dark"] .phone-metadata strong{color:var(--ink)}
+html[data-theme="dark"] .location-box span,
+html[data-theme="dark"] .previous-count span{color:#b8cabd}
+html[data-theme="dark"] .step,html[data-theme="dark"] .divide-mark,
+html[data-theme="dark"] .small-icon,html[data-theme="dark"] .mini-counter,
+html[data-theme="dark"] .search-go,html[data-theme="dark"] .sku,
+html[data-theme="dark"] .big-check{background:#244a38;color:#a4f6c8}
+html[data-theme="dark"] .step-dark{background:#0c1912;color:#e2f7e8}
+html[data-theme="dark"] .live-pill,
+html[data-theme="dark"] .status-done,
+html[data-theme="dark"] .notice.success{background:#1c4532;color:#a1f3c4}
+html[data-theme="dark"] .status-running{background:#203b57;color:#b0dcff}
+html[data-theme="dark"] .status-early,
+html[data-theme="dark"] .warning-check{background:#4c351b;color:#ffce83}
+html[data-theme="dark"] .flash{background:#4c2924;color:#ffcebf;border-color:#815044}
+html[data-theme="dark"] .flash.success{background:#224631;color:#b7f2c8;border-color:#3b6b4b}
+html[data-theme="dark"] .warning-notice{background:#43301b;color:#ffe0ae;border-color:#805c30}
+html[data-theme="dark"] .no-location-tag{color:#ffd18b}
+html[data-theme="dark"] .filter-context{background:#233b31;color:#dff7e8;border-color:#456151}
+html[data-theme="dark"] .filter-context a{color:#a5f6cb}
+html[data-theme="dark"] .qty-adjust{background:#273e31;color:#b2f4d1}
+html[data-theme="dark"] .qty-adjust:active{background:#335841}
+html[data-theme="dark"] .quantity-input{border-color:#438c67}
+html[data-theme="dark"] .bar{background:#31463a}
+html[data-theme="dark"] .bar>span{background:#48c993}
+html[data-theme="dark"] .btn-primary{background:#218a61;color:#fff}
+html[data-theme="dark"] .btn-primary:not(:disabled):hover{background:#187550}
+html[data-theme="dark"] .btn-outline-alert{background:#3c2820;color:#ffbe9b;border-color:#8b4e39}
+html[data-theme="dark"] .btn-danger{background:#a64c30;color:#fff}
+html[data-theme="dark"] .phone-identity>span,
+html[data-theme="dark"] .worker-subline,
+html[data-theme="dark"] .below-card{color:#b1c5b8}
+html[data-theme="dark"] .code-card{background:#0b1c13;color:#fff}
+html[data-theme="dark"] .code-card span{color:#c5dacc}
+html[data-theme="dark"] .quiet-button{color:#b9e3c8}
+html[data-theme="dark"] .searchbox:focus-within{border-color:var(--green)}
