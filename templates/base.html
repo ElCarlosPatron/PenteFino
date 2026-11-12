@@ -6,6 +6,15 @@
   <meta name="theme-color" content="#f5f7f9">
   <meta name="description" content="Pente Fino — conferência final de produtos em equipe">
   <title>{% block title %}Pente Fino{% endblock %}</title>
+  <script>
+    // Aplica a preferência antes de carregar o CSS, evitando o flash de tema claro.
+    try {
+      if (localStorage.getItem('pentefino-theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#101916');
+      }
+    } catch (_) { /* Armazenamento indisponível: usa o tema claro */ }
+  </script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -14,7 +23,13 @@
       <span class="brand-icon">PF<span class="brand-dot">.</span></span>
       <span class="brand-text">Pente Fino <small>CONTAGEM FINAL</small></span>
     </a>
-    <span class="topbar-tag">v3.2</span>
+    <div class="topbar-actions">
+      <button type="button" class="theme-toggle" data-theme-toggle aria-label="Ativar tema escuro" aria-pressed="false">
+        <span class="theme-icon" data-theme-icon aria-hidden="true">☾</span>
+        <span data-theme-label>Escuro</span>
+      </button>
+      <span class="topbar-tag">v3.4</span>
+    </div>
   </header>
   <main class="container {% block container_class %}{% endblock %}">
     {% with flashes = get_flashed_messages(with_categories=true) %}
